@@ -48,4 +48,12 @@ public class ChatCompletionMessage {
     public void setContent(String content) {
         this.content = content;
     }
+
+    @Override
+    public String toString() {
+        return "ChatCompletionMessage{" +
+                "role=" + role +
+                ", content='" + content + '\'' +
+                '}';
+    }
 }

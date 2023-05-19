@@ -1,7 +1,10 @@
 package com.example.application.service.pinecone;
 
+import com.example.application.service.openai.OpenAIService;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -14,6 +17,8 @@ import java.util.Map;
 
 @Service
 public class PineconeService {
+
+    private static final Logger logger = LoggerFactory.getLogger(PineconeService.class);
 
     private WebClient webClient;
 
@@ -35,6 +40,8 @@ public class PineconeService {
 
     @RegisterReflectionForBinding({QueryResponse.class})
     public Mono<List<String>> findSimilarDocuments(List<Double> embedding, int maxResults, String namespace) {
+        logger.debug("Finding similar documents in namespace: {}", namespace);
+
         var body = Map.of(
                 "vector", embedding,
                 "topK", maxResults,

@@ -60,7 +60,7 @@ public class OpenAIService {
         logger.debug("Sending moderation request for message: {}", message.getContent());
         return webClient.post()
                 .uri("/v1/moderations")
-                .bodyValue(new ModerationRequest(message.getContent().replaceAll("\n", " ")))
+                .bodyValue(new ModerationRequest(message.getContent()))
                 .retrieve()
                 .bodyToMono(ModerationResponse.class);
     }
@@ -83,7 +83,7 @@ public class OpenAIService {
                 .map(EmbeddingResponse::getEmbedding);
     }
 
-    @RegisterReflectionForBinding(ChatCompletionResponse.class)
+    @RegisterReflectionForBinding({ChatCompletionChunkResponse.class, Message.class})
     public Flux<String> generateCompletionStream(List<ChatCompletionMessage> messages) {
         logger.debug("Generating completion for messages: {}", messages);
 
@@ -103,6 +103,7 @@ public class OpenAIService {
                 .onErrorResume(error -> Flux.empty()) // The stream terminates with a `[DONE]` message, which causes an error
                 .filter(response -> {
                     var content = response.getChoices().get(0).getDelta().getContent();
+                    logger.debug("Received chunk: {}", content);
                     return content != null && !content.equals("\n\n");
                 })
                 .map(response -> response.getChoices().get(0).getDelta().getContent());

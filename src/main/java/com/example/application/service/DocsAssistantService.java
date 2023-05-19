@@ -42,6 +42,11 @@ public class DocsAssistantService {
         return supportedFrameworks;
     }
 
+    /**
+     * Finds similar documents in the documentation and calls the OpenAI chat completion API.
+     *
+     * @return The completion as a stream of chunks
+     */
     public Flux<String> getCompletionStream(List<ChatCompletionMessage> history, String framework) {
         if(history.isEmpty()) {
             return Flux.error(new RuntimeException("History is empty"));
