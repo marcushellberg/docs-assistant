@@ -103,7 +103,7 @@ public class OpenAIService {
                 .onErrorResume(error -> Flux.empty()) // The stream terminates with a `[DONE]` message, which causes an error
                 .filter(response -> {
                     var content = response.getChoices().get(0).getDelta().getContent();
-                    return content != null && !content.isBlank();
+                    return content != null && !content.equals("\n\n");
                 })
                 .map(response -> response.getChoices().get(0).getDelta().getContent());
     }

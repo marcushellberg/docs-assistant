@@ -7,6 +7,7 @@ import Role from "Frontend/generated/com/example/application/service/openai/mode
 import ChatMessage from "./ChatMessage.js";
 import Framework from "Frontend/generated/com/example/application/service/Framework.js";
 import {Select, SelectItem} from "@hilla/react-components/Select";
+import {VirtualList} from "@hilla/react-components/VirtualList";
 
 export default function App() {
   const [working, setWorking] = useState(false);
@@ -74,9 +75,9 @@ export default function App() {
         <Select items={supportedFrameworks as SelectItem[]} value={framework} onChange={e => changeFramework(e.target.value)} />
       </div>
 
-      <div className="flex-grow overflow-scroll">
-        {messages.map((message, index) => <ChatMessage key={index} content={message.content} role={message.role}/>)}
-      </div>
+      <VirtualList items={messages} className="flex-grow">
+        {({item}) => <ChatMessage content={item.content} role={item.role}/> }
+      </VirtualList>
 
       <MessageInput onSubmit={e => getCompletion(e.detail.value)} />
     </div>
