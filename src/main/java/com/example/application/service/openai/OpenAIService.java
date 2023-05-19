@@ -55,7 +55,7 @@ public class OpenAIService {
                 });
     }
 
-    @RegisterReflectionForBinding(ChatCompletionResponse.class)
+    @RegisterReflectionForBinding({ModerationRequest.class, ModerationResponse.class})
     private Mono<ModerationResponse> sendModerationRequest(ChatCompletionMessage message) {
         logger.debug("Sending moderation request for message: {}", message.getContent());
         return webClient.post()

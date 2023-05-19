@@ -2,9 +2,9 @@ package com.example.application.service.pinecone;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.annotation.PostConstruct;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -33,6 +33,7 @@ public class PineconeService {
                 .build();
     }
 
+    @RegisterReflectionForBinding({QueryResponse.class})
     public Mono<List<String>> findSimilarDocuments(List<Double> embedding, int maxResults, String namespace) {
         var body = Map.of(
                 "vector", embedding,
@@ -60,7 +61,7 @@ public class PineconeService {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class QueryResponse {
+    static class QueryResponse {
         private List<Match> matches;
 
         public List<Match> getMatches() {
@@ -73,7 +74,7 @@ public class PineconeService {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private static class Match {
+    static class Match {
         private Map<String, String> metadata;
 
         public Map<String, String> getMetadata() {
