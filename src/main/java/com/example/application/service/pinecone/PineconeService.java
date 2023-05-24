@@ -18,7 +18,7 @@ import java.util.Map;
 @Service
 public class PineconeService {
 
-    private static final Logger logger = LoggerFactory.getLogger(PineconeService.class);
+    private final Logger logger = LoggerFactory.getLogger(PineconeService.class);
 
     private WebClient webClient;
 

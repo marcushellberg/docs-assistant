@@ -10,9 +10,7 @@ import Role from "Frontend/generated/com/example/application/service/openai/mode
 
 export default function ChatMessage({content, role}: ChatCompletionMessage) {
   return (
-    <div className={`w-full mb-l ${
-      role === Role.USER ? 'bg-white' : ''
-    }`}>
+    <div className="w-full mb-l">
       <div className="flex gap-m ">
         <div className="text-2xl">
           {role === Role.ASSISTANT ? '🤖' : '🧑‍💻'}

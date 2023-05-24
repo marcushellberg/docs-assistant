@@ -22,7 +22,7 @@ import java.util.Map;
 @Service
 public class OpenAIService {
 
-    private static final Logger logger = LoggerFactory.getLogger(OpenAIService.class);
+    private final Logger logger = LoggerFactory.getLogger(OpenAIService.class);
 
     private static final String OPENAI_API_URL = "https://api.openai.com";
 
@@ -100,7 +100,19 @@ public class OpenAIService {
                 ))
                 .retrieve()
                 .bodyToFlux(ChatCompletionChunkResponse.class)
-                .onErrorResume(error -> Flux.empty()) // The stream terminates with a `[DONE]` message, which causes an error
+                .onErrorResume(error -> {
+
+                    // The stream terminates with a `[DONE]` message, which causes a serialization error
+                    // Ignore this error and return an empty stream instead
+                    if(error.getMessage().contains("JsonToken.START_ARRAY")) {
+                        return Flux.empty();
+                    }
+
+                    // If the error is not caused by the `[DONE]` message, return the error
+                    else {
+                        return Flux.error(error);
+                    }
+                })
                 .filter(response -> {
                     var content = response.getChoices().get(0).getDelta().getContent();
                     logger.debug("Received chunk: {}", content);
