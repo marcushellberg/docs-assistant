@@ -24,7 +24,7 @@ jobs:
           cache: 'maven'
       - name: Build app
         run: |
-          ./mvnw -Pprodction spring-boot:build-image -Dspring-boot.build-image.imageName=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION}}
+          ./mvnw -Pproduction spring-boot:build-image -Dspring-boot.build-image.imageName=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION}}
       - name: Log in to container registry
         uses: docker/login-action@v2
         with:

@@ -1,4 +1,4 @@
-# fly.toml app configuration file generated for docs-assistant on 2023-05-25T14:37:12-07:00
+# fly.toml app configuration file generated for vaadin-docs-assistant on 2023-05-25T14:49:52-07:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
@@ -7,7 +7,7 @@ app = "vaadin-docs-assistant"
 primary_region = "sjc"
 
 [build]
- image = "ghcr.io/marcushellberg/docs-assistant:latest"
+  image = "ghcr.io/marcushellberg/docs-assistant:latest"
 
 [env]
   PORT = "8080"
