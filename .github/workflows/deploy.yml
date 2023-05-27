@@ -1,9 +1,8 @@
 name: Deploy to Fly.io
 
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [published]
 
 jobs:
   deploy:
@@ -14,7 +13,6 @@ jobs:
       - name: Install Fly
         uses: superfly/flyctl-actions/setup-flyctl@master
       - name: Deploy to Fly
-        run: |
-         flyctl deploy --remote-only
+        run: flyctl deploy --remote-only
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
