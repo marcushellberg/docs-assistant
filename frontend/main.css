@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+code {
+    @apply bg-blue-50 text-gray-800 rounded p-0.5;
+}
+
+p {
+    @apply my-2;
+}
+
+li {
+    @apply list-disc list-inside;
+}
+
+pre, code {
+    @apply max-w-full overflow-x-scroll;
+}

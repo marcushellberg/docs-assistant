@@ -14,7 +14,6 @@ import org.springframework.context.annotation.ImportRuntimeHints;
  *
  */
 @SpringBootApplication
-@Theme(value = "docs-assistant")
 @ImportRuntimeHints(Application.RuntimeHints.class)
 public class Application implements AppShellConfigurator {
 
