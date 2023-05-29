@@ -15,7 +15,6 @@ RUN mvn dependency:go-offline
 COPY . .
 
 RUN mvn -Pnative -Pproduction native:compile
-RUN ls -l /usr/src/app/target
 
 # Second stage: Lightweight debian-slim image
 FROM debian:bookworm-slim
