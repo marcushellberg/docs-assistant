@@ -19,13 +19,13 @@ public class PineconeService {
 
     private final Logger logger = LoggerFactory.getLogger(PineconeService.class);
 
-    private WebClient webClient;
-
     @Value("${pinecone.api.key}")
     private String PINECONE_API_KEY;
 
     @Value("${pinecone.api.url}")
     private String PINECONE_API_URL;
+
+    private WebClient webClient;
 
     @PostConstruct
     void init() {
