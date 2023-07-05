@@ -43,7 +43,6 @@ public class OpenAIService {
     }
 
 
-
     public Mono<Boolean> moderate(List<ChatCompletionMessage> messages) {
         return Flux.fromIterable(messages)
                 .flatMap(this::sendModerationRequest)
@@ -83,19 +82,16 @@ public class OpenAIService {
                 .map(EmbeddingResponse::getEmbedding);
     }
 
-    @RegisterReflectionForBinding({ChatCompletionChunkResponse.class, Message.class})
+    @RegisterReflectionForBinding({ChatCompletionChunkResponse.class})
     public Flux<String> generateCompletionStream(List<ChatCompletionMessage> messages) {
         logger.debug("Generating completion for messages: {}", messages);
-
-        // Maps the Role enum to a String as the serialization doesn't call the toString() method on the enum
-        var requestMessages = messages.stream().map(m -> new Message(m.getRole().toString(), m.getContent())).toList();
 
         return webClient
                 .post()
                 .uri("/v1/chat/completions")
                 .bodyValue(Map.of(
                         "model", "gpt-3.5-turbo",
-                        "messages", requestMessages,
+                        "messages", messages,
                         "stream", true
                 ))
                 .retrieve()
@@ -104,7 +100,7 @@ public class OpenAIService {
 
                     // The stream terminates with a `[DONE]` message, which causes a serialization error
                     // Ignore this error and return an empty stream instead
-                    if(error.getMessage().contains("JsonToken.START_ARRAY")) {
+                    if (error.getMessage().contains("JsonToken.START_ARRAY")) {
                         return Flux.empty();
                     }
 

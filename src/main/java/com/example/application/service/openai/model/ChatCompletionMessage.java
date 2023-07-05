@@ -1,6 +1,8 @@
 package com.example.application.service.openai.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ChatCompletionMessage {
@@ -17,8 +19,14 @@ public class ChatCompletionMessage {
         }
 
         @Override
+        @JsonValue
         public String toString() {
             return role;
+        }
+
+        @JsonCreator
+        public static Role fromString(String value) {
+            return Role.valueOf(value.toUpperCase());
         }
     }
 
