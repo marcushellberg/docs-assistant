@@ -1,7 +1,6 @@
 package com.example.application.service.pinecone;
 
-import com.example.application.service.openai.OpenAIService;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.example.application.service.pinecone.model.QueryResponse;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,25 +66,4 @@ public class PineconeService {
                 .collectList();
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static class QueryResponse {
-        private List<Match> matches;
-
-        public List<Match> getMatches() {
-            return matches;
-        }
-
-        public void setMatches(List<Match> matches) {
-            this.matches = matches;
-        }
-    }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    static class Match {
-        private Map<String, String> metadata;
-
-        public Map<String, String> getMetadata() {
-            return metadata;
-        }
-    }
 }
