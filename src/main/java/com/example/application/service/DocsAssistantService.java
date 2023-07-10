@@ -27,8 +27,8 @@ public class DocsAssistantService {
 
     private final List<Framework> supportedFrameworks = List.of(
             new Framework("Flow", "flow"),
-            new Framework("Hilla/React", "hilla-react"),
-            new Framework("Hilla/Lit", "hilla-lit")
+            new Framework("Hilla with React", "hilla-react"),
+            new Framework("Hilla with Lit", "hilla-lit")
     );
 
     public DocsAssistantService(OpenAIService openAIService, PineconeService pineconeService) {
@@ -48,7 +48,7 @@ public class DocsAssistantService {
      * @return The completion as a stream of chunks
      */
     public Flux<String> getCompletionStream(List<ChatCompletionMessage> history, String framework) {
-        if(history.isEmpty()) {
+        if (history.isEmpty()) {
             return Flux.error(new RuntimeException("History is empty"));
         }
 
@@ -57,30 +57,36 @@ public class DocsAssistantService {
         return openAIService
                 .moderate(history)
                 .flatMap(isContentSafe -> isContentSafe ?
-                                openAIService.createEmbedding(question) :
-                                Mono.error(new RuntimeException("Failed to get embedding")))
+                        openAIService.createEmbedding(question) :
+                        Mono.error(new RuntimeException("Failed to get embedding")))
                 .flatMap(embedding -> pineconeService.findSimilarDocuments(embedding, 10, framework))
-                .map(similarDocuments -> getPromptWithContext(history, similarDocuments))
+                .map(similarDocuments -> getPromptWithContext(history, similarDocuments, framework))
                 .flatMapMany(openAIService::generateCompletionStream);
     }
 
     private List<ChatCompletionMessage> getPromptWithContext(List<ChatCompletionMessage> history,
-                                                             List<String> contextDocs) {
+                                                             List<String> contextDocs, String framework) {
         var contextString = getContextString(contextDocs);
         var systemMessages = new ArrayList<ChatCompletionMessage>();
+        var fullFramework = supportedFrameworks.stream()
+                .filter(f -> f.getValue().equals(framework))
+                .findFirst()
+                .orElseThrow()
+                .getLabel();
+
         systemMessages.add(new ChatCompletionMessage(
                 ChatCompletionMessage.Role.SYSTEM,
-                "You are a helpful AI assistant. You love to help developers! Answer the user's question with the help of the information in the documentation."
+                "You are a helpful AI assistant. You love to help developers! Answer the user's question with the help of the information in the documentation for the product below."
         ));
         systemMessages.add(new ChatCompletionMessage(
                 ChatCompletionMessage.Role.USER,
                 String.format(
                         """
-                        Here is the documentation:
-                        ===
-                        %s
-                        ===
-                        """, contextString)
+                                Here is the documentation for %s:
+                                ===
+                                %s
+                                ===
+                                """, fullFramework, contextString)
         ));
         systemMessages.add(new ChatCompletionMessage(
                 ChatCompletionMessage.Role.USER,
@@ -98,14 +104,15 @@ public class DocsAssistantService {
 
     /**
      * Returns a string of up to MAX_CONTEXT_TOKENS tokens from the contextDocs
+     *
      * @param contextDocs The context documents
      */
     private String getContextString(List<String> contextDocs) {
         var tokenCount = 0;
         var stringBuilder = new StringBuilder();
-        for(var doc : contextDocs) {
+        for (var doc : contextDocs) {
             tokenCount += tokenizer.encode(doc).size() + 2; // +2 for the newline and the --- separator
-            if(tokenCount > MAX_CONTEXT_TOKENS) {
+            if (tokenCount > MAX_CONTEXT_TOKENS) {
                 break;
             }
             stringBuilder.append(doc);
@@ -117,8 +124,9 @@ public class DocsAssistantService {
 
     /**
      * Removes old messages from the history until the total number of tokens + MAX_RESPONSE_TOKENS stays under MAX_TOKENS
+     *
      * @param systemMessages The system messages including context and prompt
-     * @param history The history of messages. The last message is the user question, do not remove it.
+     * @param history        The history of messages. The last message is the user question, do not remove it.
      * @return The capped messages that can be sent to the OpenAI API.
      */
     private List<ChatCompletionMessage> capMessages(List<ChatCompletionMessage> systemMessages,
@@ -128,8 +136,8 @@ public class DocsAssistantService {
 
         var tokens = getTokenCount(systemMessages) + getTokenCount(cappedHistory);
 
-        while(tokens > availableTokens) {
-            if(cappedHistory.size() == 1) {
+        while (tokens > availableTokens) {
+            if (cappedHistory.size() == 1) {
                 throw new RuntimeException("Cannot cap messages further, only user question left");
             }
 
@@ -147,12 +155,13 @@ public class DocsAssistantService {
     /**
      * Returns the number of tokens in the messages.
      * See https://github.com/openai/openai-cookbook/blob/834181d5739740eb8380096dac7056c925578d9a/examples/How_to_count_tokens_with_tiktoken.ipynb
+     *
      * @param messages The messages to count the tokens of
      * @return The number of tokens in the messages
      */
-    private int getTokenCount(List<ChatCompletionMessage> messages){
+    private int getTokenCount(List<ChatCompletionMessage> messages) {
         var tokenCount = 3; // every reply is primed with <|start|>assistant<|message|>
-        for(var message : messages) {
+        for (var message : messages) {
             tokenCount += getMessageTokenCount(message);
         }
         return tokenCount;
@@ -160,6 +169,7 @@ public class DocsAssistantService {
 
     /**
      * Returns the number of tokens in the message.
+     *
      * @param message The message to count the tokens of
      * @return The number of tokens in the message
      */
