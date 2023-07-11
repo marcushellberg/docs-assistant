@@ -76,17 +76,17 @@ public class DocsAssistantService {
 
         systemMessages.add(new ChatCompletionMessage(
                 ChatCompletionMessage.Role.SYSTEM,
-                "You are a helpful AI assistant. You love to help developers! Answer the user's question with the help of the information in the documentation for the product below."
+                String.format("You are a senior Vaadin expert. You love to help developers! Answer the user's question about %s development with the help of the information in the provided documentation.", fullFramework)
         ));
         systemMessages.add(new ChatCompletionMessage(
                 ChatCompletionMessage.Role.USER,
                 String.format(
                         """
-                                Here is the documentation for %s:
+                                Here is the documentation:
                                 ===
                                 %s
                                 ===
-                                """, fullFramework, contextString)
+                                """, contextString)
         ));
         systemMessages.add(new ChatCompletionMessage(
                 ChatCompletionMessage.Role.USER,

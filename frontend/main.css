@@ -10,9 +10,11 @@ p {
     @apply my-2;
 }
 
-li {
-    @apply list-disc list-inside;
+ul {
+    @apply list-disc list-outside;
+    padding: revert;
 }
+
 
 pre, code {
     @apply max-w-full overflow-x-scroll;
