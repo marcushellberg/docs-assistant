@@ -23,6 +23,9 @@ export default function App() {
   }, []);
 
   async function getCompletion(text: string) {
+    if (working) return;
+    setWorking(true);
+
     const messageHistory = [
       ...messages,
       {
@@ -78,7 +81,7 @@ export default function App() {
       <div className="flex gap-4 mb-6 items-center justify-between">
         <h1 className="font-semibold text-lg md:text-2xl">Vaadin Docs Assistant</h1>
         <Select
-          className="w-24"
+          className="w-24 sm:w-48"
           items={supportedFrameworks as SelectItem[]}
           value={framework}
           onChange={(e) => changeFramework(e.target.value)}
@@ -89,7 +92,7 @@ export default function App() {
         {({ item }) => <ChatMessage content={item.content} role={item.role} />}
       </VirtualList>
 
-      <MessageInput className="p-0 pt-2" onSubmit={(e) => getCompletion(e.detail.value)} />
+      <MessageInput className="p-0 pt-2" onSubmit={(e) => getCompletion(e.detail.value)} disabled={working} />
     </div>
   );
 }

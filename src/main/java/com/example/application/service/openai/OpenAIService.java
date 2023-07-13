@@ -68,10 +68,9 @@ public class OpenAIService {
     public Mono<List<Double>> createEmbedding(String text) {
         logger.debug("Creating embedding for text: {}", text);
 
-        String replacedText = text.replace("\n", " ");
         Map<String, Object> body = Map.of(
                 "model", "text-embedding-ada-002",
-                "input", replacedText
+                "input", text
         );
 
         return webClient.post()

@@ -13,10 +13,10 @@
     "@hilla/generator-typescript-plugin-model": "2.0.5",
     "@hilla/generator-typescript-plugin-push": "2.0.5",
     "@hilla/generator-typescript-utils": "2.0.5",
-    "@hilla/react-components": "2.0.3",
+    "@hilla/react-components": "2.1.3",
     "@polymer/polymer": "3.5.1",
     "@vaadin-component-factory/vcf-nav": "1.1.0",
-    "@vaadin/bundles": "24.0.3",
+    "@vaadin/bundles": "24.1.3",
     "@vaadin/common-frontend": "0.0.18",
     "@vaadin/icon": "24.0.3",
     "@vaadin/icons": "24.0.3",
@@ -105,9 +105,9 @@
       "@hilla/generator-typescript-plugin-model": "2.0.5",
       "@hilla/generator-typescript-plugin-push": "2.0.5",
       "@hilla/generator-typescript-utils": "2.0.5",
-      "@hilla/react-components": "2.0.3",
+      "@hilla/react-components": "2.1.3",
       "@polymer/polymer": "3.5.1",
-      "@vaadin/bundles": "24.0.3",
+      "@vaadin/bundles": "24.1.3",
       "@vaadin/common-frontend": "0.0.18",
       "@vaadin/icon": "24.0.3",
       "@vaadin/icons": "24.0.3",
@@ -136,6 +136,6 @@
       "workbox-core": "6.5.4",
       "workbox-precaching": "6.5.4"
     },
-    "hash": "b3d6f886b6906d08ed6187520a2a98c276e646bd6e2f9df655ce56e262c8f015"
+    "hash": "afa1e10ef159b18523b59fcf0982b2fc615465533b7921b1bd3f5088fc74b837"
   }
 }

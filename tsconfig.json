@@ -11,7 +11,7 @@
     "inlineSources": true,
     "module": "esNext",
     "target": "es2020",
-    "moduleResolution": "nodeNext",
+    "moduleResolution": "node",
     "strict": true,
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
@@ -29,6 +29,11 @@
       "Frontend/*": ["*"]
     }
   },
-  "include": ["frontend/**/*", "types.d.ts"],
-  "exclude": ["frontend/generated/jar-resources/**"]
+  "include": [
+    "frontend/**/*",
+    "types.d.ts"
+  ],
+  "exclude": [
+    "frontend/generated/jar-resources/**"
+  ]
 }

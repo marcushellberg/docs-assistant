@@ -1,5 +1,4 @@
 // components/ChatMessage.tsx
-import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/atom-one-light.css';

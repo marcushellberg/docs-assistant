@@ -111,7 +111,7 @@ public class DocsAssistantService {
         var tokenCount = 0;
         var stringBuilder = new StringBuilder();
         for (var doc : contextDocs) {
-            tokenCount += tokenizer.encode(doc).size() + 2; // +2 for the newline and the --- separator
+            tokenCount += tokenizer.encode(doc + "\n---\n").size();
             if (tokenCount > MAX_CONTEXT_TOKENS) {
                 break;
             }
