@@ -25,11 +25,15 @@
     "@vaadin/vaadin-usage-statistics": "2.1.2",
     "construct-style-sheets-polyfill": "3.1.0",
     "date-fns": "2.29.3",
+    "highlight.js": "^11.9.0",
     "lit": "3.1.4",
+    "nanoid": "^5.0.7",
     "proj4": "2.11.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-router-dom": "6.23.1"
+    "react-markdown": "^9.0.1",
+    "react-router-dom": "6.23.1",
+    "rehype-highlight": "^7.0.0"
   },
   "devDependencies": {
     "@babel/preset-react": "7.24.7",
@@ -119,7 +123,7 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "00086ecf51ad52d043355465dceef19db8c8b3c8b2c101c4135cfb07026de9f6"
+    "hash": "d42e0af046b9475704442df52c330212dae5b36e69bc7ae65593f75969238fdb"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -159,6 +163,8 @@
     "@vaadin/react-components-pro": "$@vaadin/react-components-pro",
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
     "@vaadin/vaadin-lumo-styles": "$@vaadin/vaadin-lumo-styles",
-    "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles"
+    "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles",
+    "nanoid": "$nanoid",
+    "react-markdown": "$react-markdown"
   }
 }
