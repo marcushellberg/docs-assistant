@@ -46,6 +46,7 @@ public class SpringAiConfig {
                 .withProjectId(projectId)
                 .withIndexName("docs")
                 .withNamespace(framework)
+                .withContentFieldName("article")
                 .build();
     }
 }

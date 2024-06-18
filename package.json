@@ -123,7 +123,7 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "d42e0af046b9475704442df52c330212dae5b36e69bc7ae65593f75969238fdb"
+    "hash": "72355b6fc33e74bfb410fa6a0d92278b68ae4198e4b5c2982f15b660c7d05624"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -165,6 +165,8 @@
     "@vaadin/vaadin-lumo-styles": "$@vaadin/vaadin-lumo-styles",
     "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles",
     "nanoid": "$nanoid",
-    "react-markdown": "$react-markdown"
+    "react-markdown": "$react-markdown",
+    "highlight.js": "$highlight.js",
+    "rehype-highlight": "$rehype-highlight"
   }
 }

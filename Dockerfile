@@ -1,7 +1,6 @@
 # First stage: JDK with GraalVM
 FROM ghcr.io/graalvm/native-image-community:21 AS build
 
-
 WORKDIR /usr/src/app
 
 COPY . .
