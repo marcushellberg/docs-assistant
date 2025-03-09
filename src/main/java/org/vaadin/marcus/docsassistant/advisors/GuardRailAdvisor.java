@@ -1,18 +1,9 @@
 package org.vaadin.marcus.docsassistant.advisors;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.api.AdvisedRequest;
-import org.springframework.ai.chat.client.advisor.api.AdvisedResponse;
-import org.springframework.ai.chat.client.advisor.api.CallAroundAdvisor;
-import org.springframework.ai.chat.client.advisor.api.CallAroundAdvisorChain;
-import org.springframework.ai.chat.client.advisor.api.StreamAroundAdvisor;
-import org.springframework.ai.chat.client.advisor.api.StreamAroundAdvisorChain;
+import org.springframework.ai.chat.client.advisor.api.*;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.MessageType;
@@ -22,8 +13,11 @@ import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.core.Ordered;
 import org.springframework.util.Assert;
-
 import reactor.core.publisher.Flux;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A {@link CallAroundAdvisor} and {@link StreamAroundAdvisor} that uses a guardrail LLM to
@@ -231,7 +225,7 @@ public class GuardRailAdvisor implements CallAroundAdvisor, StreamAroundAdvisor 
     private AdvisedResponse createFailureResponse(AdvisedRequest advisedRequest) {
         return new AdvisedResponse(
             ChatResponse.builder()
-                .generations(java.util.List.of(new Generation(new AssistantMessage(this.failureResponse))))
+                .generations(List.of(new Generation(new AssistantMessage(this.failureResponse))))
                 .build(),
             advisedRequest.adviseContext()
         );
