@@ -1,5 +1,4 @@
 import {useCallback, useEffect, useState} from 'react';
-import {Chat} from '@vaadin/flow-frontend/chat/Chat.js';
 import {Button, Icon, Select, Tooltip} from '@vaadin/react-components';
 import {nanoid} from 'nanoid';
 import '@vaadin/icons';
@@ -11,20 +10,15 @@ import {DocsAssistantService} from "Frontend/generated/endpoints";
 import ChatOptions from "Frontend/generated/org/vaadin/marcus/docsassistant/client/DocsAssistantService/ChatOptions";
 import ChatOptionsModel
   from "Frontend/generated/org/vaadin/marcus/docsassistant/client/DocsAssistantService/ChatOptionsModel";
+import {Chat} from "Frontend/components/chat/Chat";
 
 const defaultOptions: ChatOptions = {
   framework: 'flow'
 };
 
 const availableFrameworks = [
-  {
-    label: 'Flow',
-    value: 'flow'
-  },
-  {
-    label: 'Hilla',
-    value: 'hilla'
-  }
+  {label: 'Flow', value: 'flow'},
+  {label: 'Hilla', value: 'hilla'}
 ]
 
 export default function SpringAiAssistant() {

@@ -15,8 +15,8 @@ import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.web.multipart.MultipartFile;
-import org.vaadin.components.experimental.chat.AiChatService;
 import org.vaadin.marcus.docsassistant.advisors.GuardRailAdvisor;
+import org.vaadin.marcus.docsassistant.chat.ChatService;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
@@ -26,7 +26,7 @@ import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvis
 
 @BrowserCallable
 @AnonymousAllowed
-public class DocsAssistantService implements AiChatService<DocsAssistantService.ChatOptions> {
+public class DocsAssistantService implements ChatService<DocsAssistantService.ChatOptions> {
 
     // Object for passing additional options from the client
     public record ChatOptions(String framework) {
