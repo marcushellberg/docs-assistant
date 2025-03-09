@@ -14,7 +14,6 @@ import org.springframework.ai.rag.preretrieval.query.transformation.RewriteQuery
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
-import org.springframework.core.Ordered;
 import org.springframework.web.multipart.MultipartFile;
 import org.vaadin.components.experimental.chat.AiChatService;
 import org.vaadin.marcus.docsassistant.advisors.GuardRailAdvisor;
@@ -75,7 +74,7 @@ public class DocsAssistantService implements AiChatService<DocsAssistantService.
 
     private static final String NO_CONTEXT_PROMPT = """
         The user query is not directly covered in the documentation.
-        Do your best to answer the user's question without context, letting them know you are not sure.
+        Do your best to answer the user's question without context, letting them know if you are not sure.
         """;
 
     private final ChatClient chatClient;
@@ -99,7 +98,6 @@ public class DocsAssistantService implements AiChatService<DocsAssistantService.
                     .chatClientBuilder(builder.build().mutate())
                     .acceptanceCriteria(ACCEPTANCE_CRITERIA)
                     .failureResponse(FAILURE_RESPONSE)
-                    .order(Ordered.HIGHEST_PRECEDENCE + 1001) // after the chat memory
                     .build()
             )
             .build();
