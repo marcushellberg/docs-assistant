@@ -179,6 +179,9 @@ public class GuardRailAdvisor implements CallAroundAdvisor, StreamAroundAdvisor 
             .collect(Collectors.joining("\n"));
     }
 
+    public record ReviewResponse(boolean acceptable) {
+    }
+
     /**
      * Checks if a question is acceptable according to the guardrail.
      *
@@ -197,9 +200,6 @@ public class GuardRailAdvisor implements CallAroundAdvisor, StreamAroundAdvisor 
             );
 
             String promptText = internalTemplate.render(parameters);
-
-            record ReviewResponse(boolean acceptable) {
-            }
 
             ReviewResponse response = guardrailClient.prompt()
                 .user(promptText)

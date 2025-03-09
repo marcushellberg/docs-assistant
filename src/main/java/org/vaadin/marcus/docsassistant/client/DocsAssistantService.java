@@ -14,6 +14,7 @@ import org.springframework.ai.rag.preretrieval.query.transformation.RewriteQuery
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.web.multipart.MultipartFile;
 import org.vaadin.marcus.docsassistant.advisors.GuardRailAdvisor;
 import org.vaadin.marcus.docsassistant.chat.ChatService;
@@ -26,6 +27,10 @@ import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvis
 
 @BrowserCallable
 @AnonymousAllowed
+@RegisterReflectionForBinding({
+    DocsAssistantService.ChatOptions.class,
+    GuardRailAdvisor.ReviewResponse.class
+})
 public class DocsAssistantService implements ChatService<DocsAssistantService.ChatOptions> {
 
     // Object for passing additional options from the client
@@ -40,6 +45,8 @@ public class DocsAssistantService implements ChatService<DocsAssistantService.Ch
         Avoid making the user feel dumb by using phrases like "straightforward", "easy", "simple", "obvious", etc.
         Refer to the provided documents for up-to-date information and best practices.
         You may use Mermaid diagrams to visualize concepts if you deem it useful.
+        When working with Flow, views should always be built in Java.
+        When working with Hilla, views should always be built in React.
         """;
 
     private static final String GUARDRAIL_ACCEPTANCE_CRITERIA = """
