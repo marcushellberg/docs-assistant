@@ -1,17 +1,24 @@
-# fly.toml app configuration file generated for vaadin-docs-assistant on 2023-05-26T15:33:31-07:00
+# fly.toml app configuration file generated for vaadin-docs-assistant on 2025-03-09T14:51:50-07:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "vaadin-docs-assistant"
-primary_region = "ams"
+app = 'vaadin-docs-assistant'
+primary_region = 'ams'
+
+[build]
 
 [env]
-PORT = "8080"
+  PORT = '8080'
 
 [http_service]
-internal_port = 8080
-force_https = true
-auto_stop_machines = true
-auto_start_machines = true
-min_machines_running = 0
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  memory = '1gb'
+  cpu_kind = 'shared'
+  cpus = 1
