@@ -7,12 +7,14 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
 import org.springframework.ai.rag.preretrieval.query.transformation.CompressionQueryTransformer;
 import org.springframework.ai.rag.preretrieval.query.transformation.RewriteQueryTransformer;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
+import org.springframework.core.Ordered;
 import org.springframework.web.multipart.MultipartFile;
 import org.vaadin.components.experimental.chat.AiChatService;
 import org.vaadin.marcus.docsassistant.advisors.GuardRailAdvisor;
@@ -56,6 +58,26 @@ public class DocsAssistantService implements AiChatService<DocsAssistantService.
         "Java development, or web development with Java frameworks. Could you please ask a question " +
         "related to these topics?";
 
+    private static final String CONTEXT_PROMPT = """
+        Context information is below.
+        
+        ---------------------
+        {context}
+        ---------------------
+        
+        Answer the user's question, using the provided information as context when necessary.
+        Avoid statements like "Based on the context..." or "The provided information...".
+        
+        Query: {query}
+        
+        Answer:
+        """;
+
+    private static final String NO_CONTEXT_PROMPT = """
+        The user query is not directly covered in the documentation.
+        Do your best to answer the user's question without context, letting them know you are not sure.
+        """;
+
     private final ChatClient chatClient;
     private final ChatClient.Builder builder;
     private final VectorStore vectorStore;
@@ -77,6 +99,7 @@ public class DocsAssistantService implements AiChatService<DocsAssistantService.
                     .chatClientBuilder(builder.build().mutate())
                     .acceptanceCriteria(ACCEPTANCE_CRITERIA)
                     .failureResponse(FAILURE_RESPONSE)
+                    .order(Ordered.HIGHEST_PRECEDENCE + 1001) // after the chat memory
                     .build()
             )
             .build();
@@ -112,6 +135,8 @@ public class DocsAssistantService implements AiChatService<DocsAssistantService.
                     .build())
                 .queryAugmenter(ContextualQueryAugmenter.builder()
                     .allowEmptyContext(true)
+                    .promptTemplate(new PromptTemplate(CONTEXT_PROMPT))
+                    .emptyContextPromptTemplate(new PromptTemplate(NO_CONTEXT_PROMPT))
                     .build())
                 .build())
             .stream()

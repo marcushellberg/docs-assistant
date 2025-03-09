@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.api.*;
 import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.ChatOptions;
@@ -13,7 +15,9 @@ import org.springframework.core.Ordered;
 import org.springframework.util.Assert;
 import reactor.core.publisher.Flux;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * A {@link CallAroundAdvisor} and {@link StreamAroundAdvisor} that uses a guardrail LLM to
@@ -21,6 +25,7 @@ import java.util.Map;
  *
  * <p>This advisor takes a simple description of what types of questions are acceptable,
  * then uses a built-in template to evaluate each user question against those criteria.
+ * It also considers conversation history to avoid unnecessarily flagging follow-up questions.
  */
 public class GuardRailAdvisor implements CallAroundAdvisor, StreamAroundAdvisor {
 
@@ -32,27 +37,34 @@ public class GuardRailAdvisor implements CallAroundAdvisor, StreamAroundAdvisor 
         You are a guardrail system that evaluates if user questions are acceptable based on specific criteria.
         
         ACCEPTABLE QUESTION CRITERIA:
-        ${acceptanceCriteria}
+        {acceptanceCriteria}
         
-        USER QUESTION:
-        ${question}
+        CONVERSATION HISTORY:
+        {history}
+        
+        CURRENT USER QUESTION:
+        {question}
         
         EVALUATION INSTRUCTIONS:
-        1. Consider ONLY if the question matches the acceptance criteria. Do not answer the question.
+        1. Consider if the question matches the acceptance criteria, taking into account the conversation history.
         2. Be objective and fair in your evaluation.
         3. Evaluate strictly based on relevance to the criteria, not on how the question is phrased.
+        4. If the current question is a follow-up to previous acceptable questions, consider the context of the entire conversation.
+        5. Do not answer the question, only evaluate it.
         
-        First, provide a brief, objective analysis of the question against the criteria.
+        First, provide a brief, objective analysis of the question against the criteria, considering the conversation history.
         Then, make a final determination as either "ACCEPT" or "REJECT".
         
         OUTPUT YOUR DECISION ONLY AS THE FINAL LINE OF YOUR RESPONSE, FORMATTED EXACTLY AS:
         DECISION: [ACCEPT/REJECT]
         """;
+    public static final int DEFAULT_ORDER = Ordered.HIGHEST_PRECEDENCE + 2000; // Chat history is + 1000, ensure this runs after we have the history available
 
     private final ChatClient guardrailClient;
     private final PromptTemplate internalTemplate;
     private final String failureResponse;
     private final int order;
+    private final String acceptanceCriteria;
 
     /**
      * Creates a new GuardRailAdvisor.
@@ -69,10 +81,10 @@ public class GuardRailAdvisor implements CallAroundAdvisor, StreamAroundAdvisor 
         Assert.notNull(failureResponse, "Failure response must not be null!");
 
         this.guardrailClient = chatClientBuilder.build();
-        this.internalTemplate = new PromptTemplate(DEFAULT_GUARDRAIL_TEMPLATE,
-            Map.of("acceptanceCriteria", acceptanceCriteria));
+        this.internalTemplate = new PromptTemplate(DEFAULT_GUARDRAIL_TEMPLATE);
         this.failureResponse = failureResponse;
         this.order = order;
+        this.acceptanceCriteria = acceptanceCriteria;
     }
 
     public static Builder builder() {
@@ -98,7 +110,7 @@ public class GuardRailAdvisor implements CallAroundAdvisor, StreamAroundAdvisor 
             return chain.nextAroundCall(advisedRequest);
         }
 
-        boolean isAcceptable = checkAcceptability(userQuestion);
+        boolean isAcceptable = checkAcceptability(userQuestion, advisedRequest.messages());
 
         if (!isAcceptable) {
             logger.debug("Question '{}' failed guardrail check", userQuestion);
@@ -118,7 +130,7 @@ public class GuardRailAdvisor implements CallAroundAdvisor, StreamAroundAdvisor 
             return chain.nextAroundStream(advisedRequest);
         }
 
-        boolean isAcceptable = checkAcceptability(userQuestion);
+        boolean isAcceptable = checkAcceptability(userQuestion, advisedRequest.messages());
 
         if (!isAcceptable) {
             logger.debug("Question '{}' failed guardrail check", userQuestion);
@@ -140,14 +152,41 @@ public class GuardRailAdvisor implements CallAroundAdvisor, StreamAroundAdvisor 
     }
 
     /**
+     * Formats the conversation history into a string representation.
+     *
+     * @param messages the list of messages in the conversation
+     * @return a formatted string of the conversation history
+     */
+    private String formatConversationHistory(List<Message> messages) {
+        if (messages == null || messages.isEmpty()) {
+            return "No previous conversation.";
+        }
+
+        return messages.stream()
+            .filter(message -> message.getMessageType().equals(MessageType.USER)
+                || message.getMessageType().equals(MessageType.ASSISTANT))
+            .map(message -> "%s: %s".formatted(message.getMessageType(), message.getText()))
+            .collect(Collectors.joining("\n"));
+    }
+
+    /**
      * Checks if a question is acceptable according to the guardrail.
      *
      * @param question the question to check
+     * @param messages the conversation history
      * @return true if the question is acceptable, false otherwise
      */
-    private boolean checkAcceptability(String question) {
+    private boolean checkAcceptability(String question, List<Message> messages) {
         try {
-            String promptText = internalTemplate.render(Map.of("question", question));
+            String history = formatConversationHistory(messages);
+
+            Map<String, Object> parameters = Map.of(
+                "acceptanceCriteria", this.acceptanceCriteria,
+                "history", history,
+                "question", question
+            );
+
+            String promptText = internalTemplate.render(parameters);
 
             String response = guardrailClient.prompt()
                 .user(promptText)
@@ -192,7 +231,7 @@ public class GuardRailAdvisor implements CallAroundAdvisor, StreamAroundAdvisor 
         private ChatClient.Builder chatClientBuilder;
         private String acceptanceCriteria;
         private String failureResponse = DEFAULT_FAILURE_RESPONSE;
-        private int order = Ordered.HIGHEST_PRECEDENCE;
+        private int order = DEFAULT_ORDER;
 
         private Builder() {
         }
