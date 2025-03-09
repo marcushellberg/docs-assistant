@@ -13,7 +13,7 @@ FROM debian:bookworm-slim
 WORKDIR /app
 
 # Copy the native binary from the build stage
-COPY --from=build /usr/src/app/target/vaadin-docs-assistant /app/vaadin-docs-assistant
+COPY --from=build /usr/src/app/target/docs-assistant /app/docs-assistant
 
 # Run the application
-CMD ["/app/vaadin-docs-assistant"]
+CMD ["/app/docs-assistant"]
