@@ -9,7 +9,6 @@ import org.springframework.ai.chat.client.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
 import org.springframework.ai.rag.preretrieval.query.transformation.CompressionQueryTransformer;
-import org.springframework.ai.rag.preretrieval.query.transformation.RewriteQueryTransformer;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
@@ -29,17 +28,15 @@ public class DocsAssistantService implements AiChatService<DocsAssistantService.
     }
 
     // ThreadLocal to store the current framework option
-    private static final ThreadLocal<String> currentFramework = new ThreadLocal<>();
+    private final ThreadLocal<String> currentFramework = new ThreadLocal<>();
 
     private static final String SYSTEM_MESSAGE = """
-        You are Koda, an AI assistant specialized in Vaadin development. Your primary goal is to assist users with their questions related to Vaadin development. Your responses should be helpful, provide relevant code snippets. Refer to the provided documents for up-to-date information and best practices. Follow these guidelines:
-        1. **Clarity and Precision**: Ensure your answers are clear, concise, and directly address the user's query.
-        2. **Clear Steps**: When applicable, provide clear steps or instructions to help users understand the solution.
-        3. **Code Snippets**: When applicable, include relevant and well-commented code snippets to illustrate your points.
-        4. **Documentation**: Base your answers on the included Vaadin documentation. Always provide references or links to the documentation where necessary.
-        5. **User Guidance**: Guide users through troubleshooting steps or best practices when they face issues.
-        6. **Politeness**: Maintain a polite and professional tone in all interactions.
-        7. **Visualization**: You may use Mermaid diagrams to visualize concepts if you deem it useful.
+        You are Koda, an AI assistant specialized in Vaadin development.
+        Your primary goal is to assist users with their questions related to Vaadin development.
+        Your responses should be helpful, clear, succinct, and provide relevant code snippets.
+        Avoid making the user feel dumb by using phrases like "straightforward", "easy", "simple", "obvious", etc.
+        Refer to the provided documents for up-to-date information and best practices.
+        You may use Mermaid diagrams to visualize concepts if you deem it useful.
         """;
 
     private static final String ACCEPTANCE_CRITERIA = """
@@ -56,7 +53,6 @@ public class DocsAssistantService implements AiChatService<DocsAssistantService.
     private static final String FAILURE_RESPONSE = "I'm sorry, but your question doesn't appear to be related to Vaadin, " +
         "Java development, or web development with Java frameworks. Could you please ask a question " +
         "related to these topics?";
-
 
     private final ChatClient chatClient;
     private final ChatMemory chatMemory;
@@ -80,23 +76,19 @@ public class DocsAssistantService implements AiChatService<DocsAssistantService.
                     .queryTransformers(
                         CompressionQueryTransformer.builder()
                             .chatClientBuilder(builder.build().mutate())
-                            .build(),
-                        RewriteQueryTransformer.builder()
-                            .chatClientBuilder(builder.build().mutate())
-                            .build()
+                            .build()//,
+//                        RewriteQueryTransformer.builder()
+//                            .chatClientBuilder(builder.build().mutate())
+//                            .build()
                     )
                     .documentRetriever(VectorStoreDocumentRetriever.builder()
                         .vectorStore(vectorStore)
                         .similarityThreshold(0.5)
                         .topK(5)
                         .filterExpression(() -> {
-                            // Get the framework from ThreadLocal, default to empty string if not set
                             String framework = currentFramework.get();
-                            if (framework == null) {
-                                framework = "";
-                            }
                             return new FilterExpressionBuilder()
-                                .in("framework", framework, "")
+                                .in("framework", framework != null ? framework : "", "")
                                 .build();
                         })
                         .build())

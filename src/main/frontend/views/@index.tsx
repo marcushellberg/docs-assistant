@@ -34,15 +34,23 @@ export default function SpringAiAssistant() {
     setChatId(nanoid());
   }
 
+  function clearChatHistoryFromServer() {
+    DocsAssistantService.closeChat(chatId);
+  }
+
   // Set up form for managing chat options
   const {field, model, read, value} = useForm(ChatOptionsModel);
 
   useEffect(() => {
+    clearChatHistoryFromServer();
     resetChat();
   }, [value.framework]);
 
+
+  // On attach, read in the default options. On detach, clear chat from server.
   useEffect(() => {
     read(defaultOptions);
+    return () => clearChatHistoryFromServer();
   }, []);
 
   // Define a custom renderer for Mermaid charts
@@ -64,7 +72,7 @@ export default function SpringAiAssistant() {
           </h1>
 
           <Select items={availableFrameworks} {...field(model.framework)}/>
-          
+
           <Button onClick={resetChat} theme="icon small contrast tertiary">
             <Icon icon="lumo:reload"/>
             <Tooltip slot="tooltip" text="New chat"/>
