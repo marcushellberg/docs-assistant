@@ -42,7 +42,7 @@ public class DocsAssistantService implements ChatService<DocsAssistantService.Ch
         You may use Mermaid diagrams to visualize concepts if you deem it useful.
         """;
 
-    private static final String ACCEPTANCE_CRITERIA = """
+    private static final String GUARDRAIL_ACCEPTANCE_CRITERIA = """
         Questions should be related to one or more of the following topics:
         1. Vaadin framework and its components
         2. Java development, including core Java, Java EE, or Spring Framework
@@ -53,7 +53,7 @@ public class DocsAssistantService implements ChatService<DocsAssistantService.Ch
         or topics clearly outside of Java web development are NOT acceptable.
         """;
 
-    private static final String FAILURE_RESPONSE = "I'm sorry, but your question doesn't appear to be related to Vaadin, " +
+    private static final String GUARDRAIL_FAILURE_RESPONSE = "I'm sorry, but your question doesn't appear to be related to Vaadin, " +
         "Java development, or web development with Java frameworks. Could you please ask a question " +
         "related to these topics?";
 
@@ -96,8 +96,8 @@ public class DocsAssistantService implements ChatService<DocsAssistantService.Ch
                 new MessageChatMemoryAdvisor(chatMemory),
                 GuardRailAdvisor.builder()
                     .chatClientBuilder(builder.build().mutate())
-                    .acceptanceCriteria(ACCEPTANCE_CRITERIA)
-                    .failureResponse(FAILURE_RESPONSE)
+                    .acceptanceCriteria(GUARDRAIL_ACCEPTANCE_CRITERIA)
+                    .failureResponse(GUARDRAIL_FAILURE_RESPONSE)
                     .build()
             )
             .build();
