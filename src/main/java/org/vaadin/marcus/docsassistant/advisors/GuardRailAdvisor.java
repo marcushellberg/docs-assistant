@@ -53,10 +53,7 @@ public class GuardRailAdvisor implements CallAroundAdvisor, StreamAroundAdvisor 
         5. Do not answer the question, only evaluate it.
         
         First, provide a brief, objective analysis of the question against the criteria, considering the conversation history.
-        Then, make a final determination as either "ACCEPT" or "REJECT".
-        
-        OUTPUT YOUR DECISION ONLY AS THE FINAL LINE OF YOUR RESPONSE, FORMATTED EXACTLY AS:
-        DECISION: [ACCEPT/REJECT]
+        Then, return your final determination in the provided format.
         """;
     public static final int DEFAULT_ORDER = Ordered.HIGHEST_PRECEDENCE + 2000; // Chat history is + 1000, ensure this runs after we have the history available
 
@@ -188,21 +185,18 @@ public class GuardRailAdvisor implements CallAroundAdvisor, StreamAroundAdvisor 
 
             String promptText = internalTemplate.render(parameters);
 
-            String response = guardrailClient.prompt()
+            record ReviewResponse(boolean acceptable) {
+            }
+
+            ReviewResponse response = guardrailClient.prompt()
                 .user(promptText)
                 .options(ChatOptions.builder().temperature(0.0).build())
                 .call()
-                .content();
+                .entity(ReviewResponse.class);
 
             logger.debug("Guardrail evaluation response: {}", response);
 
-            boolean acceptable = response.contains("DECISION: ACCEPT");
-            if (!acceptable && !response.contains("DECISION: REJECT")) {
-                logger.warn("Unexpected guardrail response format: {}", response);
-                return true; // Default to allowing if the response format is unexpected
-            }
-
-            return acceptable;
+            return response.acceptable();
         } catch (Exception e) {
             logger.error("Error during guardrail check", e);
             return true; // Default to allowing in case of errors
