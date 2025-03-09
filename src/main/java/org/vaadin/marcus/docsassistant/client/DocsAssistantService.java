@@ -125,9 +125,10 @@ public class DocsAssistantService implements ChatService<DocsAssistantService.Ch
                 )
                 .documentRetriever(VectorStoreDocumentRetriever.builder()
                     .vectorStore(vectorStore)
-                    .similarityThreshold(0.5)
-                    .topK(5)
+                    .similarityThreshold(0.6)
+                    .topK(10) // TODO: we should add a rerank step when that's supported.
                     .filterExpression(new FilterExpressionBuilder()
+                        // Always include the given framework and an empty string to also include general docs
                         .in("framework", framework, "")
                         .build())
                     .build())
