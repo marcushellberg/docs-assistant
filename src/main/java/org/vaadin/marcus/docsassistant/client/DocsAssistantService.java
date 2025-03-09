@@ -9,6 +9,7 @@ import org.springframework.ai.chat.client.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
 import org.springframework.ai.rag.preretrieval.query.transformation.CompressionQueryTransformer;
+import org.springframework.ai.rag.preretrieval.query.transformation.RewriteQueryTransformer;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
@@ -19,6 +20,9 @@ import reactor.core.publisher.Flux;
 
 import java.util.List;
 
+import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY;
+import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_RETRIEVE_SIZE_KEY;
+
 @BrowserCallable
 @AnonymousAllowed
 public class DocsAssistantService implements AiChatService<DocsAssistantService.ChatOptions> {
@@ -27,11 +31,9 @@ public class DocsAssistantService implements AiChatService<DocsAssistantService.
     public record ChatOptions(String framework) {
     }
 
-    // ThreadLocal to store the current framework option
-    private final ThreadLocal<String> currentFramework = new ThreadLocal<>();
-
     private static final String SYSTEM_MESSAGE = """
         You are Koda, an AI assistant specialized in Vaadin development.
+        Answer the user's questions regarding the {framework} framework.
         Your primary goal is to assist users with their questions related to Vaadin development.
         Your responses should be helpful, clear, succinct, and provide relevant code snippets.
         Avoid making the user feel dumb by using phrases like "straightforward", "easy", "simple", "obvious", etc.
@@ -44,7 +46,7 @@ public class DocsAssistantService implements AiChatService<DocsAssistantService.
         1. Vaadin framework and its components
         2. Java development, including core Java, Java EE, or Spring Framework
         3. Web development with Java-based frameworks
-        4. Frontend technologies commonly used with Java backends
+        4. Frontend technologies commonly used with Java backends, such as React.
         
         Questions about unrelated programming languages, non-technical topics,
         or topics clearly outside of Java web development are NOT acceptable.
@@ -55,12 +57,16 @@ public class DocsAssistantService implements AiChatService<DocsAssistantService.
         "related to these topics?";
 
     private final ChatClient chatClient;
+    private final ChatClient.Builder builder;
+    private final VectorStore vectorStore;
     private final ChatMemory chatMemory;
 
     public DocsAssistantService(
         ChatClient.Builder builder,
         VectorStore vectorStore,
         ChatMemory chatMemory) {
+        this.builder = builder;
+        this.vectorStore = vectorStore;
         this.chatMemory = chatMemory;
 
         chatClient = builder
@@ -71,30 +77,6 @@ public class DocsAssistantService implements AiChatService<DocsAssistantService.
                     .chatClientBuilder(builder.build().mutate())
                     .acceptanceCriteria(ACCEPTANCE_CRITERIA)
                     .failureResponse(FAILURE_RESPONSE)
-                    .build(),
-                RetrievalAugmentationAdvisor.builder()
-                    .queryTransformers(
-                        CompressionQueryTransformer.builder()
-                            .chatClientBuilder(builder.build().mutate())
-                            .build()//,
-//                        RewriteQueryTransformer.builder()
-//                            .chatClientBuilder(builder.build().mutate())
-//                            .build()
-                    )
-                    .documentRetriever(VectorStoreDocumentRetriever.builder()
-                        .vectorStore(vectorStore)
-                        .similarityThreshold(0.5)
-                        .topK(5)
-                        .filterExpression(() -> {
-                            String framework = currentFramework.get();
-                            return new FilterExpressionBuilder()
-                                .in("framework", framework != null ? framework : "", "")
-                                .build();
-                        })
-                        .build())
-                    .queryAugmenter(ContextualQueryAugmenter.builder()
-                        .allowEmptyContext(true)
-                        .build())
                     .build()
             )
             .build();
@@ -104,14 +86,36 @@ public class DocsAssistantService implements AiChatService<DocsAssistantService.
     public Flux<String> stream(String chatId, String userMessage, @Nullable ChatOptions chatOptions) {
         String framework = chatOptions != null ? chatOptions.framework() : "";
 
-        // Store the framework in ThreadLocal for use in the filter expression defined in the Supplier above
-        currentFramework.set(framework);
-
         return chatClient.prompt()
+            .system(s -> s.param("framework", framework))
             .user(userMessage)
+            .advisors(a -> {
+                a.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId);
+                a.param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 20);
+            })
+            .advisors(RetrievalAugmentationAdvisor.builder()
+                .queryTransformers(
+                    CompressionQueryTransformer.builder()
+                        .chatClientBuilder(builder.build().mutate())
+                        .build(),
+                    RewriteQueryTransformer.builder()
+                        .chatClientBuilder(builder.build().mutate())
+                        .build()
+                )
+                .documentRetriever(VectorStoreDocumentRetriever.builder()
+                    .vectorStore(vectorStore)
+                    .similarityThreshold(0.5)
+                    .topK(5)
+                    .filterExpression(new FilterExpressionBuilder()
+                        .in("framework", framework, "")
+                        .build())
+                    .build())
+                .queryAugmenter(ContextualQueryAugmenter.builder()
+                    .allowEmptyContext(true)
+                    .build())
+                .build())
             .stream()
-            .content()
-            .doFinally(signal -> currentFramework.remove());
+            .content();
     }
 
     @Override
