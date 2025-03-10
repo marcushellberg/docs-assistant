@@ -6,6 +6,7 @@ import jakarta.annotation.Nullable;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.RetrievalAugmentationAdvisor;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
@@ -27,10 +28,7 @@ import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvis
 
 @BrowserCallable
 @AnonymousAllowed
-@RegisterReflectionForBinding({
-    DocsAssistantService.ChatOptions.class,
-    GuardRailAdvisor.ReviewResponse.class
-})
+@RegisterReflectionForBinding({DocsAssistantService.ChatOptions.class})
 public class DocsAssistantService implements ChatService<DocsAssistantService.ChatOptions> {
 
     // Object for passing additional options from the client
@@ -101,6 +99,7 @@ public class DocsAssistantService implements ChatService<DocsAssistantService.Ch
             .defaultSystem(SYSTEM_MESSAGE)
             .defaultAdvisors(
                 new MessageChatMemoryAdvisor(chatMemory),
+                new SimpleLoggerAdvisor(),
                 GuardRailAdvisor.builder()
                     .chatClientBuilder(builder.build().mutate())
                     .acceptanceCriteria(GUARDRAIL_ACCEPTANCE_CRITERIA)

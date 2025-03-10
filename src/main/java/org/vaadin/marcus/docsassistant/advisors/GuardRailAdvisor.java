@@ -65,7 +65,10 @@ public class GuardRailAdvisor implements CallAroundAdvisor, StreamAroundAdvisor 
         5. Do not answer the question, only evaluate it.
         
         First, provide a brief, objective analysis of the question against the criteria, considering the conversation history.
-        Then, return your final determination in the provided format.
+        
+        IMPORTANT: End your response with a single line containing ONLY one of these two phrases:
+        DECISION: ACCEPTABLE
+        DECISION: UNACCEPTABLE
         """;
 
     private static final String DEFAULT_FAILURE_RESPONSE = "I'm sorry, but your question doesn't follow our guidelines. Please rephrase your question and try again.";
@@ -179,9 +182,6 @@ public class GuardRailAdvisor implements CallAroundAdvisor, StreamAroundAdvisor 
             .collect(Collectors.joining("\n"));
     }
 
-    public record ReviewResponse(boolean acceptable) {
-    }
-
     /**
      * Checks if a question is acceptable according to the guardrail.
      *
@@ -201,19 +201,47 @@ public class GuardRailAdvisor implements CallAroundAdvisor, StreamAroundAdvisor 
 
             String promptText = internalTemplate.render(parameters);
 
-            ReviewResponse response = guardrailClient.prompt()
+            String responseContent = guardrailClient.prompt()
                 .user(promptText)
                 .options(ChatOptions.builder().temperature(0.0).build())
                 .call()
-                .entity(ReviewResponse.class);
+                .content();
 
-            logger.debug("Guardrail evaluation response: {}", response);
+            logger.debug("Guardrail evaluation response: {}", responseContent);
 
-            return response.acceptable();
+            // Parse the decision from the response content
+
+            return parseAcceptabilityDecision(responseContent);
         } catch (Exception e) {
             logger.error("Error during guardrail check", e);
             return true; // Default to allowing in case of errors
         }
+    }
+
+    /**
+     * Parses the acceptability decision from the AI response content.
+     *
+     * @param responseContent the response content from the AI
+     * @return true if the response indicates the question is acceptable, false otherwise
+     */
+    private boolean parseAcceptabilityDecision(String responseContent) {
+        if (responseContent == null || responseContent.isEmpty()) {
+            logger.warn("Empty response from guardrail check, defaulting to acceptable");
+            return true;
+        }
+
+        // Check if the response contains the unacceptable decision phrase
+        if (responseContent.contains("DECISION: UNACCEPTABLE")) {
+            return false;
+        }
+
+        // If it contains the acceptable phrase or no decision phrase at all,
+        // default to acceptable (with a warning in the latter case)
+        if (!responseContent.contains("DECISION: ACCEPTABLE")) {
+            logger.warn("No decision found in guardrail response, defaulting to acceptable");
+        }
+
+        return true;
     }
 
     /**
